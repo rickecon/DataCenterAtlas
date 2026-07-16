@@ -22,4 +22,4 @@ Total property tax liability is equal to the market rate times the assessment ra
 
 $$
 \text{Total prop. tax liability}_i = FMV_i \quad\times\quad \text{AssessRatio}_j \quad\times\quad \text{CumPropTaxRate}_j
-##
+$$
