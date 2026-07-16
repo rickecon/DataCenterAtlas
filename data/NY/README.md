@@ -5,7 +5,7 @@ Assesment is done locally, usually by the town/city assessors. Assessed values r
 
 Data centers in New York are generally taxed under the same real property tax rules as other commercial and industrial property. However, because data centers are extremely capital intensive, serveral aspects of New York law are particularly important.
 
-As mentioned above, assessment ratios (called level of assessment or LOA in New York) vary across New York local jurisdictions, usually cities or towns. Table 5 from [?](https://www.tax.ny.gov/research/property/reports/cod/2025mvs/reporttext.htm) shows that levels of assessment across jurisdictions in New York in 2025 ranged widely.
+As mentioned above, assessment ratios (called level of assessment or LOA in New York) vary across New York local jurisdictions, usually cities or towns. Table 5 from New York State Department of Taxation and Finance ["Assessment Equity in New York: Results from the 2025 Market Value Survey"](https://www.tax.ny.gov/research/property/reports/cod/2025mvs/reporttext.htm) shows that levels of assessment across jurisdictions in New York in 2025 ranged widely.
 
 Table 5. Level of assessment, as measured by 2025 State equalization rate
 | Level of assessment | Number of assessing units | Percent of assessing units |
@@ -16,4 +16,10 @@ Table 5. Level of assessment, as measured by 2025 State equalization rate
 | 50.01 - 75.00 | 347 | 35.3% |
 | 75.01 - 100.00 | 365 | 37.2% |
 | Greater than 100.00 | 0 | 0.0% |
-| Total | 982 | 100% |
+| TOTAL | 982 | 100.0% |
+
+Total property tax liability is equal to the market rate times the assessment ratio times the total (cumulative) property tax rate.
+
+$$
+\text{Total prop. tax liability}_i = FMV_i \quad\times\quad \text{AssessRatio}_j \quad\times\quad \text{CumPropTaxRate}_j
+##
