@@ -1,0 +1,361 @@
+<script>
+"use strict";
+const GEO    = __GEO__;
+const RATES  = __RATES__;
+const NS = "http://www.w3.org/2000/svg";
+const el = (t,a)=>{const n=document.createElementNS(NS,t); for(const k in a) n.setAttribute(k,a[k]); return n;};
+const $  = s=>document.querySelector(s);
+
+/* ---------- bins (bounds specified by the analyst) ---------- */
+const BINS = [
+  {lo:0.004300, hi:0.007600, v:"--b1", hex:"#cde2fb", label:"0.43% – 0.76%"},
+  {lo:0.007600, hi:0.008100, v:"--b2", hex:"#9ec5f4", label:"0.76% – 0.81%"},
+  {lo:0.008100, hi:0.009200, v:"--b3", hex:"#5598e7", label:"0.81% – 0.92%"},
+  {lo:0.009200, hi:0.010375, v:"--b4", hex:"#256abf", label:"0.92% – 1.0375%"},
+  {lo:0.010375, hi:0.015100, v:"--b5", hex:"#0d366b", label:"1.0375% – 1.51%"}
+];
+const binOf = r => { for(let i=0;i<BINS.length;i++){ if(r < BINS[i].hi || i===BINS.length-1) return i; } return 4; };
+const pct  = (r,d)=> (r*100).toFixed(d===undefined?2:d) + "%";
+
+/* ---------- shared map machinery ---------- */
+const LAT0 = 39.32, KX = Math.cos(LAT0*Math.PI/180);
+function eachPt(feats, fn){
+  for(const f of feats){
+    const g=f.geometry, rings = g.type==="Polygon" ? g.coordinates : g.coordinates.flat();
+    for(const r of rings) for(const c of r) fn(c[0],c[1]);
+  }
+}
+function makeProj(feats, x0,y0,x1,y1){
+  let mnx=1e9,mxx=-1e9,mny=1e9,mxy=-1e9;
+  eachPt(feats,(lon,lat)=>{const x=lon*KX, y=-lat;
+    if(x<mnx)mnx=x; if(x>mxx)mxx=x; if(y<mny)mny=y; if(y>mxy)mxy=y;});
+  const w=x1-x0, h=y1-y0, s=Math.min(w/(mxx-mnx), h/(mxy-mny));
+  const ox = x0 + (w-(mxx-mnx)*s)/2, oy = y0 + (h-(mxy-mny)*s)/2;
+  const P = (lon,lat)=>[ox+(lon*KX-mnx)*s, oy+(-lat-mny)*s];
+  P.scale = s; P.x0 = ox; P.x1 = ox+(mxx-mnx)*s; P.y0 = oy; P.y1 = oy+(mxy-mny)*s;
+  return P;
+}
+function pathFor(g,P){
+  const rings = g.type==="Polygon" ? g.coordinates : g.coordinates.flat();
+  let d="";
+  for(const r of rings){
+    for(let i=0;i<r.length;i++){ const p=P(r[i][0], r[i][1]); d += (i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1); }
+    d += "Z";
+  }
+  return d;
+}
+function ringInfo(g,P){
+  const rings = g.type==="Polygon" ? g.coordinates : g.coordinates.flat();
+  let best=null, bestA=-1;
+  for(const r of rings){
+    const pts=r.map(c=>P(c[0],c[1]));
+    let a=0,cx=0,cy=0;
+    for(let i=0,j=pts.length-1;i<pts.length;j=i++){
+      const f = pts[j][0]*pts[i][1] - pts[i][0]*pts[j][1];
+      a+=f; cx+=(pts[j][0]+pts[i][0])*f; cy+=(pts[j][1]+pts[i][1])*f;
+    }
+    a/=2; if(!a) continue;
+    if(Math.abs(a)>bestA){
+      bestA=Math.abs(a);
+      let mnx=1e9,mxx=-1e9,mny=1e9,mxy=-1e9;
+      for(const p of pts){ if(p[0]<mnx)mnx=p[0]; if(p[0]>mxx)mxx=p[0]; if(p[1]<mny)mny=p[1]; if(p[1]>mxy)mxy=p[1]; }
+      best={cx:cx/(6*a), cy:cy/(6*a), w:mxx-mnx, h:mxy-mny, area:Math.abs(a)};
+    }
+  }
+  return best;
+}
+function pointIn(g, P, x, y){
+  const rings = g.type==="Polygon" ? g.coordinates : g.coordinates.flat();
+  let inside=false;
+  for(const r of rings){
+    for(let i=0,j=r.length-1;i<r.length;j=i++){
+      const a=P(r[i][0],r[i][1]), b=P(r[j][0],r[j][1]);
+      if((a[1]>y)!==(b[1]>y) && x < (b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0]) inside=!inside;
+    }
+  }
+  return inside;
+}
+function showTip(tip, wrap, sx, sy, html){
+  const vb = wrap.querySelector("svg").viewBox.baseVal, rect = wrap.getBoundingClientRect();
+  const s = Math.min(rect.width/vb.width, rect.height/vb.height);
+  const ox = (rect.width - vb.width*s)/2, oy = (rect.height - vb.height*s)/2;
+  tip.innerHTML = html;
+  tip.style.left = (ox + sx*s) + "px";
+  tip.style.top  = (oy + sy*s) + "px";
+  tip.style.opacity = 1;
+}
+
+/* ================= SLIDE 2 : choropleth ================= */
+const VW=640, VH=600, PAD=14;
+const counties = GEO.features
+  .map(f=>({name:f.properties.name, geom:f.geometry, rate:RATES[f.properties.name]}))
+  .sort((a,b)=>b.rate-a.rate);
+counties.forEach(c=>{ c.bin = binOf(c.rate); });
+
+let sel2 = null;   // selected bin index, or null for "show all"
+
+/* width of a two-line "Name / 0.00%" label, in viewBox units */
+const labW = name => Math.max(name.length*5.0, 30) + 7;
+const labH = 21;
+
+function drawLabel(g, c, x, y, anchor, outside){
+  const dark = c.bin>=3 && !outside;
+  const t = el("text", {class:"clab", x:x.toFixed(1), y:y.toFixed(1)});
+  t.style.textAnchor = anchor || "middle";
+  const t1 = el("tspan",{class:"cnm", x:x.toFixed(1), dy:"-1",
+                         fill: outside ? "#52514e" : (dark?"rgba(255,255,255,.92)":"#52514e")});
+  t1.textContent = c.name;
+  const t2 = el("tspan",{class:"crt", x:x.toFixed(1), dy:"11",
+                         fill: outside ? "#0b0b0b" : (dark?"#ffffff":"#0b0b0b")});
+  t2.textContent = pct(c.rate);
+  t.append(t1,t2);
+  c.label = t;
+  g.appendChild(t);
+}
+
+function buildMap2(){
+  const svg = $("#map2"), wrap = $("#map2wrap"), tip = $("#tip2");
+  svg.setAttribute("viewBox", `0 0 ${VW} ${VH}`);
+  svg.setAttribute("preserveAspectRatio","xMidYMid meet");
+  const P = makeProj(GEO.features, PAD, PAD, VW-PAD, VH-PAD);
+  const gShapes = el("g"), gOutline = el("g"), gLead = el("g"), gLabs = el("g");
+  svg.append(gShapes, gOutline, gLead, gLabs);
+
+  for(const c of counties){
+    c.info = ringInfo(c.geom, P);
+    const p = el("path", {d:pathFor(c.geom,P), fill:BINS[c.bin].hex, stroke:"#fcfcfb",
+                          "stroke-width":1.1, "stroke-linejoin":"round", class:"cnty"});
+    p.dataset.name = c.name;
+    c.node = p;
+    gShapes.appendChild(p);
+    gOutline.appendChild(el("path",{d:pathFor(c.geom,P), fill:"none",
+        stroke:"rgba(11,11,11,.28)", "stroke-width":.45, "stroke-linejoin":"round"}));
+  }
+
+  /* Place labels inside the county when they fit and clear every label already
+     placed; otherwise send them to a side gutter with a leader line. Biggest
+     counties get first claim on the interior. */
+  const boxes = [], ext = [];
+  for(const c of counties.slice().sort((x,y)=>y.info.area-x.info.area)){
+    const w = labW(c.name);
+    const bx = {x0:c.info.cx-w/2, y0:c.info.cy-labH/2, x1:c.info.cx+w/2, y1:c.info.cy+labH/2};
+    // every corner and the midpoints of the label box must land inside the county
+    const hw=w/2, hh=labH/2, cx=c.info.cx, cy=c.info.cy;
+    const probes = [[0,0],[-hw,-hh],[hw,-hh],[-hw,hh],[hw,hh],[-hw,0],[hw,0]];
+    const fitsInside = c.info.area > 900 &&
+                       probes.every(d => pointIn(c.geom, P, cx+d[0], cy+d[1]));
+    const clashes = boxes.some(o => bx.x0 < o.x1 && bx.x1 > o.x0 && bx.y0 < o.y1 && bx.y1 > o.y0);
+    if(fitsInside && !clashes){ boxes.push(bx); drawLabel(gLabs, c, c.info.cx, c.info.cy); }
+    else ext.push(c);
+  }
+
+  const midX = (P.x0 + P.x1)/2;
+  placeGutter(ext.filter(c=>c.info.cx <  midX).sort((a,b)=>a.info.cy-b.info.cy), P.x0-9,  "end");
+  placeGutter(ext.filter(c=>c.info.cx >= midX).sort((a,b)=>a.info.cy-b.info.cy), P.x1+9,  "start");
+
+  function placeGutter(list, gx, anchor){
+    const STEP = 27;
+    let y = PAD + 10;
+    for(const c of list){
+      const ty = Math.min(Math.max(c.info.cy, y), VH-PAD-12);
+      y = ty + STEP;
+      const elbow = anchor==="end" ? gx+9 : gx-9;
+      gLead.appendChild(el("path",{class:"lead",
+        d:`M${gx.toFixed(1)} ${(ty-2).toFixed(1)}L${elbow.toFixed(1)} ${(ty-2).toFixed(1)}L${c.info.cx.toFixed(1)} ${c.info.cy.toFixed(1)}`}));
+      gLead.appendChild(el("circle",{cx:c.info.cx.toFixed(1), cy:c.info.cy.toFixed(1), r:1.8,
+                                     fill:"#0b0b0b", stroke:"#fcfcfb", "stroke-width":.8}));
+      drawLabel(gLabs, c, gx, ty, anchor, true);
+    }
+  }
+
+  svg.addEventListener("mousemove", e=>{
+    const n = e.target.closest(".cnty");
+    if(!n){ tip.style.opacity=0; hl(null); return; }
+    const c = counties.find(x=>x.name===n.dataset.name);
+    showTip(tip, wrap, c.info.cx, c.info.cy,
+      `<div>${c.name} County</div><div class="tv">${pct(c.rate,3)}</div><div class="tl">avg. effective property tax rate</div>`);
+    hl(c.name);
+  });
+  svg.addEventListener("mouseleave", ()=>{ tip.style.opacity=0; hl(null); });
+}
+function hl(name){
+  document.querySelectorAll("#list2 .crow").forEach(r=>r.classList.toggle("hl", r.dataset.name===name));
+}
+function buildLegend2(){
+  const box = $("#legend2");
+  BINS.forEach((b,i)=>{
+    const n = counties.filter(c=>c.bin===i).length;
+    const btn = document.createElement("button");
+    btn.className="lrow"; btn.type="button";
+    btn.innerHTML = `<span class="sw" style="background:${b.hex}"></span><span class="rng">${b.label}</span><span class="cnt">${n}</span>`;
+    btn.onclick = ()=>{ sel2 = (sel2===i? null : i); applySel2(); };
+    box.appendChild(btn);
+  });
+}
+function buildList2(){
+  const box = $("#list2");
+  for(const c of counties){
+    const d = document.createElement("div");
+    d.className="crow"; d.dataset.name=c.name;
+    d.innerHTML = `<span class="cs" style="background:${BINS[c.bin].hex}"></span><span class="cn">${c.name}</span><span class="cv">${pct(c.rate,3)}</span>`;
+    d.onmouseenter = ()=>{ c.node.setAttribute("stroke","#0b0b0b"); c.node.setAttribute("stroke-width",1.9); };
+    d.onmouseleave = ()=>{ c.node.setAttribute("stroke","#fcfcfb"); c.node.setAttribute("stroke-width",1.1); };
+    box.appendChild(d);
+  }
+}
+function applySel2(){
+  document.querySelectorAll("#legend2 .lrow").forEach((b,i)=>b.classList.toggle("on", sel2===i));
+  for(const c of counties){
+    const off = sel2!==null && c.bin!==sel2;
+    c.node.classList.toggle("dim", off);
+    if(c.label) c.label.style.opacity = off ? .12 : 1;
+    const row = document.querySelector(`#list2 .crow[data-name="${c.name}"]`);
+    if(row) row.classList.toggle("dim", off);
+  }
+}
+
+/* ================= SLIDE 3 : data center markets ================= */
+const MARKETS = [
+  {name:"Salt Lake City", n:27, lat:40.7608, lon:-111.8910, cnty:"Salt Lake",  side:-1, dy: 0},
+  {name:"Orem",           n:10, lat:40.2969, lon:-111.6946, cnty:"Utah",       side: 1, dy: 0},
+  {name:"Cedar City",     n:5,  lat:37.6775, lon:-113.0619, cnty:"Iron",       side:-1, dy: 0},
+  {name:"Delta",          n:2,  lat:39.3521, lon:-112.5766, cnty:"Millard",    side:-1, dy: 0},
+  {name:"Ogden",          n:2,  lat:41.2230, lon:-111.9738, cnty:"Weber",      side: 1, dy:-1},
+  {name:"Santaquin",      n:1,  lat:39.9755, lon:-111.7855, cnty:"Utah",       side: 1, dy: 1},
+  {name:"St. George",     n:1,  lat:37.0965, lon:-113.5684, cnty:"Washington", side:-1, dy: 0}
+];
+const DC_TOTAL = MARKETS.reduce((s,m)=>s+m.n,0);
+
+function buildMap3(){
+  const svg=$("#map3"), wrap=$("#map3wrap"), tip=$("#tip3");
+  svg.setAttribute("viewBox", `0 0 ${VW} ${VH}`);
+  svg.setAttribute("preserveAspectRatio","xMidYMid meet");
+  const P = makeProj(GEO.features, PAD, PAD, VW-PAD, VH-PAD);
+  const gc=el("g"), gb=el("g");
+  svg.append(gc,gb);
+  const hosts = new Set(MARKETS.map(m=>m.cnty));
+  for(const f of GEO.features){
+    const host = hosts.has(f.properties.name);
+    gc.appendChild(el("path",{d:pathFor(f.geometry,P), fill: host? "#e8eff9" : "#f2f2ee",
+                              stroke:"#dedcd4", "stroke-width":1, "stroke-linejoin":"round"}));
+    const i = ringInfo(f.geometry,P);
+    if(i && i.area>2600 && i.w>46){
+      const t=el("text",{x:i.cx.toFixed(1), y:(i.cy+3).toFixed(1), class:"clab"});
+      const sp=el("tspan",{class:"cnm", fill: host? "#8fa6c4" : "#adaba4"});
+      sp.textContent=f.properties.name;
+      t.appendChild(sp); gc.appendChild(t);
+    }
+  }
+  const K = 6.0;
+  for(const m of MARKETS.slice().sort((a,b)=>b.n-a.n)){
+    const p = P(m.lon, m.lat), r = Math.sqrt(m.n)*K;
+    m.x=p[0]; m.y=p[1]; m.r=r;
+    const c = el("circle",{cx:p[0].toFixed(1), cy:p[1].toFixed(1), r:r.toFixed(1),
+                           fill:"#256abf", "fill-opacity":.88, stroke:"#fcfcfb",
+                           "stroke-width":2, class:"bub"});
+    c.dataset.name=m.name;
+    m.node=c; gb.appendChild(c);
+    if(r>=13){
+      const t=el("text",{x:p[0].toFixed(1), y:p[1].toFixed(1), class:"blab"});
+      t.textContent=m.n; gb.appendChild(t);
+    }
+  }
+  for(const m of MARKETS){
+    const x = m.x + m.side*(m.r+8), y = m.y + m.dy*(m.r+12) + 3.5;
+    const t = el("text",{x:x.toFixed(1), y:y.toFixed(1), class:"clab"});
+    t.style.textAnchor = m.side<0 ? "end" : "start";
+    const sp = el("tspan",{class:"cnm", fill:"#0b0b0b"});
+    sp.textContent = m.r>=13 ? m.name : `${m.name} (${m.n})`;
+    t.appendChild(sp); gb.appendChild(t);
+  }
+  svg.addEventListener("mousemove", e=>{
+    const n=e.target.closest(".bub");
+    if(!n){ tip.style.opacity=0; hl3(null); return; }
+    const m=MARKETS.find(x=>x.name===n.dataset.name);
+    showTip(tip, wrap, m.x, m.y-m.r,
+      `<div>${m.name} &middot; ${m.cnty} County</div><div class="tv">${m.n} data center${m.n>1?"s":""}</div>`+
+      `<div class="tl">${(m.n/DC_TOTAL*100).toFixed(0)}% of Utah's ${DC_TOTAL} &middot; county rate ${pct(RATES[m.cnty],3)}</div>`);
+    hl3(m.name);
+  });
+  svg.addEventListener("mouseleave", ()=>{ tip.style.opacity=0; hl3(null); });
+}
+function hl3(name){
+  document.querySelectorAll("#list3 .crow").forEach(r=>r.classList.toggle("hl", r.dataset.name===name));
+}
+function buildList3(){
+  const box=$("#list3");
+  const hd=document.createElement("div");
+  hd.className="crow hd";
+  hd.innerHTML=`<span class="cs" style="background:transparent;box-shadow:none"></span><span class="cn">Market</span><span class="cc">County</span><span class="cv">DCs</span><span class="cc">Avg rate</span>`;
+  box.appendChild(hd);
+  MARKETS.slice().sort((a,b)=>b.n-a.n).forEach(m=>{
+    const d=document.createElement("div");
+    d.className="crow"; d.dataset.name=m.name;
+    d.innerHTML=`<span class="cs" style="background:#256abf"></span><span class="cn">${m.name}</span>`+
+                `<span class="cc">${m.cnty}</span><span class="cv">${m.n}</span>`+
+                `<span class="cc">${pct(RATES[m.cnty],3)}</span>`;
+    d.onmouseenter=()=>{ m.node.setAttribute("fill","#0d366b"); };
+    d.onmouseleave=()=>{ m.node.setAttribute("fill","#256abf"); };
+    box.appendChild(d);
+  });
+  const d=document.createElement("div");
+  d.className="crow"; d.style.borderTop="1px solid var(--rule)"; d.style.marginTop="6px"; d.style.paddingTop="7px";
+  d.innerHTML=`<span class="cs" style="background:transparent;box-shadow:none"></span><span class="cn"><b>Total</b></span>`+
+              `<span class="cc"></span><span class="cv"><b>${DC_TOTAL}</b></span><span class="cc"></span>`;
+  box.appendChild(d);
+  $("#dc-total").textContent = DC_TOTAL;
+}
+
+/* ================= deck navigation ================= */
+const slides=[...document.querySelectorAll(".slide")];
+let cur=0;
+function go(i){
+  cur = Math.max(0, Math.min(slides.length-1, i));
+  slides.forEach((s,k)=>s.classList.toggle("active", k===cur));
+  document.querySelectorAll("#dots .dot").forEach((d,k)=>d.classList.toggle("on", k===cur));
+  $("#counter").textContent = `${cur+1} / ${slides.length}`;
+  $("#prev").disabled = cur===0;
+  $("#next").disabled = cur===slides.length-1;
+  // lazy-load iframes on the slide we just entered
+  slides[cur].querySelectorAll("iframe[data-src]").forEach(f=>{ f.src=f.dataset.src; f.removeAttribute("data-src"); });
+  location.hash = "s"+(cur+1);
+}
+function buildNav(){
+  const dots=$("#dots"), grid=$("#ovgrid");
+  slides.forEach((s,i)=>{
+    const b=document.createElement("button");
+    b.className="dot"; b.type="button"; b.title=`${i+1}. ${s.dataset.title}`;
+    b.onclick=()=>go(i); dots.appendChild(b);
+    const c=document.createElement("button");
+    c.className="ovcard"; c.type="button";
+    c.innerHTML=`<div class="n">SLIDE ${i+1}</div><div class="t">${s.dataset.title}</div>`;
+    c.onclick=()=>{ $("#ov").classList.remove("on"); go(i); };
+    grid.appendChild(c);
+  });
+  $("#prev").onclick=()=>go(cur-1);
+  $("#next").onclick=()=>go(cur+1);
+}
+document.addEventListener("keydown", e=>{
+  if(e.target.tagName==="INPUT") return;
+  const ov=$("#ov");
+  if(e.key==="ArrowRight"||e.key===" "||e.key==="PageDown"){ e.preventDefault(); go(cur+1); }
+  else if(e.key==="ArrowLeft"||e.key==="PageUp"){ e.preventDefault(); go(cur-1); }
+  else if(e.key==="Home"){ go(0); } else if(e.key==="End"){ go(slides.length-1); }
+  else if(/^[1-9]$/.test(e.key)){ go(+e.key-1); }
+  else if(e.key==="o"||e.key==="O"){ ov.classList.toggle("on"); }
+  else if(e.key==="Escape"){ ov.classList.remove("on"); }
+  else if(e.key==="f"||e.key==="F"){
+    if(document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen();
+  }
+});
+$("#ov").addEventListener("click", e=>{ if(e.target.id==="ov") $("#ov").classList.remove("on"); });
+document.querySelectorAll(".claim-hd").forEach(b=>
+  b.addEventListener("click", ()=> b.closest(".claim").classList.toggle("open")));
+
+/* ---------- boot ---------- */
+buildNav(); buildMap2(); buildLegend2(); buildList2(); buildMap3(); buildList3();
+const start = /^#s(\d+)$/.exec(location.hash);
+go(start ? +start[1]-1 : 0);
+</script>
+</body>
+</html>
