@@ -1,0 +1,301 @@
+<div id="deck">
+
+<!-- ============ SLIDE 1 ============ -->
+<section class="slide" data-title="Utah, Data Centers, and Energy">
+  <div class="slide-head">
+    <div>
+      <div class="eyebrow">Legislative briefing &middot; August 2026</div>
+      <h1>Utah, Data Centers, and Energy</h1>
+      <p class="sub">Four things worth getting right before Utah writes data&nbsp;center policy. <b>Click any card</b> to open the argument behind it.</p>
+    </div>
+    __BRAND__
+  </div>
+  <div class="body">
+    <div class="claims">
+      <div class="claim">
+        <button class="claim-hd" type="button">
+          <span class="num">01</span>
+          <span class="txt">Data centers are not special.</span>
+        </button>
+        <div class="more"><ul>
+          <li>Describe data centers in the same way you would describe a manufacturing, retail, or agricultural enterprise.</li>
+          <li>Tax data centers the same way you would any other industry, including tax incentives.</li>
+        </ul></div>
+        <span class="cue">Click to expand</span>
+      </div>
+
+      <div class="claim">
+        <button class="claim-hd" type="button">
+          <span class="num">02</span>
+          <span class="txt">Electricity is the only significant constraint &mdash; and it exists whether or not you build the data center.</span>
+        </button>
+        <div class="more"><ul>
+          <li>Prosperity is energy-intensive.</li>
+          <li>Utah&rsquo;s electrical generation capacity has to grow over the next 10 years regardless of whether we build data centers.</li>
+        </ul></div>
+        <span class="cue">Click to expand</span>
+      </div>
+
+      <div class="claim">
+        <button class="claim-hd" type="button">
+          <span class="num">03</span>
+          <span class="txt">Transparency and correct information with the public is key to overcoming opposition.</span>
+        </button>
+        <div class="more"><ul>
+          <li>Jasmine Sun, <i>The Atlantic</i> writer, Aug.&nbsp;3 article, &ldquo;<a href="https://jasmi.news/p/no-data-centers-in-my-backyard" target="_blank" rel="noopener">no data centers in my backyard</a>.&rdquo;</li>
+          <li>Visible local costs are concerning to citizens.</li>
+          <li>Residents feel the local decision making process is broken.</li>
+          <li>Many residents doubt the promises of jobs, tax revenue, or economic development.</li>
+          <li>Deep distrust of elites is a rising populist sentiment.</li>
+        </ul></div>
+        <span class="cue">Click to expand</span>
+      </div>
+
+      <div class="claim">
+        <button class="claim-hd" type="button">
+          <span class="num">04</span>
+          <span class="txt">Data centers bring significant tax revenue and jobs &mdash; even with tax incentives.</span>
+        </button>
+        <div class="more"><ul>
+          <li>Abundance Institute <a href="https://www.datacenteratlas.org/" target="_blank" rel="noopener">DataCenterAtlas.org</a> web tool shows benefits and costs of data centers in context.</li>
+          <li>June&nbsp;9 article, &ldquo;<a href="https://econosseur.rickecon.com/p/introducing-datacenteratlas" target="_blank" rel="noopener">Introducing DataCenterAtlas.org</a>,&rdquo; describes the sources and calculations in the web tool.</li>
+          <li>Aug.&nbsp;11 article, &ldquo;<a href="https://econosseur.rickecon.com/p/which-localities-can-capture" target="_blank" rel="noopener">Which Localities Can Capture the Benefits of the Data Center Infrastructure Boom?</a>,&rdquo; focuses on data center issues at the county and municipal level. Counties and municipalities should be competing for data centers.</li>
+        </ul></div>
+        <span class="cue">Click to expand</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 2 ============ -->
+<section class="slide" data-title="Utah average effective property tax rates by county">
+  <div class="slide-head">
+    <div>
+      <div class="eyebrow">Slide 2 &middot; The tax base</div>
+      <h2>Utah average effective property tax rates by county, 2025</h2>
+      <p class="sub">Hover a county for its rate. <b>Click a legend band</b> to isolate it. Rates are the equally weighted average of total adopted tax-area rates within each county.</p>
+    </div>
+    __BRAND__
+  </div>
+  <div class="body">
+    <div class="maprow">
+      <div class="side narrow">
+        <div class="legend">
+          <h3>Avg. effective rate</h3>
+          <p class="lsub">5 bands &middot; click to isolate</p>
+          <div id="legend2"></div>
+        </div>
+        <p class="note">Source: Utah State Tax Commission, <i>2025 Tax Area Rates</i> &mdash; the equally weighted average of every tax area&rsquo;s total adopted rate within the county. Computed in <code>code/UT/ut_analyses.py</code>, OpenSourceEcon/DataCenterAtlas.</p>
+        <p class="note">Utah assesses commercial property, including data centers, at <b>100% of fair market value</b>.</p>
+      </div>
+      <div class="mapwrap" id="map2wrap">
+        <svg id="map2" role="img" aria-label="Choropleth of Utah counties by average effective property tax rate"></svg>
+        <div class="tip" id="tip2"></div>
+      </div>
+      <div class="side narrow">
+        <div class="listbox">
+          <h3>All 29 counties</h3>
+          <div class="scroll" id="list2"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 3 ============ -->
+<section class="slide" data-title="Where Utah's data centers actually are">
+  <div class="slide-head">
+    <div>
+      <div class="eyebrow">Slide 3 &middot; Location</div>
+      <h2>Where Utah&rsquo;s data centers actually are</h2>
+      <p class="sub"><b id="dc-total">48</b> data centers across <b>7 markets</b>. Bubble area is proportional to count &mdash; hover for detail, or open the live source map.</p>
+    </div>
+    __BRAND__
+  </div>
+  <div class="body">
+    <div class="framebar">
+      <button class="btn primary" type="button" onclick="window.open('https://www.datacentermap.com/usa/utah/','_blank')">Open live map at datacentermap.com &#8599;</button>
+      <span class="chip">Salt Lake City, Orem, and Ogden hold <b>&nbsp;39 of 48&nbsp;</b> &mdash; the same corridor as the load</span>
+    </div>
+    <div class="maprow">
+      <div class="mapwrap" id="map3wrap">
+        <svg id="map3" role="img" aria-label="Utah map with data center counts by market"></svg>
+        <div class="tip" id="tip3"></div>
+      </div>
+      <div class="side wide">
+        <div class="listbox" style="flex:0 0 auto">
+          <h3>Markets &rarr; county tax rate</h3>
+          <div class="scroll" id="list3" style="overflow:visible"></div>
+        </div>
+        <aside class="callout" style="flex:0 0 auto">
+          <h3>Why this slide matters</h3>
+          <p>Every existing market already sits in a county Utah taxes at somewhere between <b>0.758%</b> (Washington) and <b>1.066%</b> (Salt Lake). The rate is not the open question &mdash; it is already set, published, and applied uniformly.</p>
+          <p>What is open is <b>how much value arrives</b>, and what share of it is exempted. That is the calculation on the next slide.</p>
+        </aside>
+        <p class="note">Source: Data Center Map, &ldquo;Utah Data Centers,&rdquo; retrieved 20&nbsp;Aug&nbsp;2026 &mdash; datacentermap.com/usa/utah. Counts are colocation and listed facilities; markets are plotted at their city centroid.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 4 ============ -->
+<section class="slide" data-title="Utah revenue and jobs model">
+  <div class="slide-head">
+    <div>
+      <div class="eyebrow">Slide 4 &middot; The model</div>
+      <h2>Utah data center revenue and jobs model</h2>
+      <p class="sub">The live DataCenterAtlas. <b>Click Utah on the map</b> below, then move the size, exemption, and county controls to see property tax revenue and employment change in real time.</p>
+    </div>
+    __BRAND__
+  </div>
+  <div class="body">
+    <div class="framebar">
+      <span class="chip">Step 1 &mdash; click <b>&nbsp;Utah&nbsp;</b> on the map</span>
+      <span class="chip">Step 2 &mdash; set MW, county, and exemption %</span>
+      <button class="btn" type="button" onclick="var f=document.getElementById('atlasFrame');f.src=f.src">Reload</button>
+      <button class="btn" type="button" onclick="window.open('https://www.datacenteratlas.org/','_blank')">Open in new tab &#8599;</button>
+    </div>
+    <div class="frame">
+      <iframe id="atlasFrame" data-src="https://www.datacenteratlas.org/" title="DataCenterAtlas" loading="lazy"></iframe>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 5 ============ -->
+<section class="slide" data-title="How we calculate a data center's value">
+  <div class="slide-head">
+    <div>
+      <div class="eyebrow">Slide 5 &middot; Method</div>
+      <h2>How do we calculate a data center&rsquo;s value?</h2>
+      <p class="sub">Peak electrical capacity (MW) is the one number that is always public. The figure below is live &mdash; hover any point.</p>
+    </div>
+    __BRAND__
+  </div>
+  <div class="body">
+    <div class="fig">
+      <div class="figmain">
+        <div class="frame"><iframe id="fig3Frame" data-src="__FIG3_SRC__" title="Figure 3: US data centers by electrical capacity and fair market value"></iframe></div>
+      </div>
+      <div class="figside">
+      <aside class="callout">
+        <h3>The key point</h3>
+        <p><b>This measure of value includes both real property and personal property.</b></p>
+        <p><b>Real property</b> &mdash; land, buildings, and improvements permanently affixed to the land.</p>
+        <p><b>Personal property</b> &mdash; the servers, racks, cooling, and electrical equipment inside.</p>
+        <p>For an ordinary commercial business, real property dwarfs personal property. For a data center it is the reverse: personal property can be <b>three to four times</b> real property value. A valuation that counts only the building misses most of the asset &mdash; and Utah taxes both at 100% of fair market value.</p>
+        <p class="src">Real vs. personal property magnitudes: Kem C. Gardner Policy Institute, <i>Data Centers and Utah&rsquo;s Property Tax</i>, Aug. 2026, Fig.&nbsp;2.</p>
+      </aside>
+      <p class="figcap">For peak capacity above 95&nbsp;MW the relationship is well approximated by
+        <code>FMV&nbsp;=&nbsp;0.0100181&nbsp;&times;&nbsp;MW&nbsp;&minus;&nbsp;0.3496</code> ($ billions). Because that line predicts
+        negative values below 34.9&nbsp;MW, a three-parameter exponential is fit to capacities under 95&nbsp;MW.
+        Source: Evans, &ldquo;Introducing DataCenterAtlas,&rdquo; <i>Econosseur</i>; code in <code>code/all/fig3tab1_MWtoFMV.py</code>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 6 ============ -->
+<section class="slide" data-title="Two Abundance Institute articles">
+  <div class="slide-head">
+    <div>
+      <div class="eyebrow">Slide 6 &middot; The underlying analysis</div>
+      <h2>Two Abundance Institute articles</h2>
+      <p class="sub">The written work behind the tool on Slide&nbsp;4 &mdash; what it measures, where the numbers come from, and what it implies for counties and cities.</p>
+    </div>
+    __BRAND__
+  </div>
+  <div class="body">
+    <div class="studies">
+      <div class="card">
+        <span class="date">June 9, 2026</span>
+        <h3>Introducing DataCenterAtlas.org</h3>
+        <p class="verdict">An explainer of the DataCenterAtlas.org web tool, its sources, and its calculations.</p>
+        <ul>
+          <li>Data centers should be assessed based on their benefits relative to their costs, including externalities imposed on other businesses and residents. And data centers should be evaluated by <b>the same criteria as all other businesses and investments</b> across industries.</li>
+          <li>The DataCenterAtlas.org web tool provides a <b>transparent, county-level tool</b> that allows policymakers, local officials, and residents to compare the economic benefits, tax revenues, electricity demand, water use, and employment effects of data centers using publicly available data.</li>
+          <li>Property tax revenue from data centers can be <b>sizable to counties and municipalities, even when significant tax exemptions are granted</b>.</li>
+          <li>Data center water and electricity use are significant, but declining. And current data center water and electricity use are <b>comparable to or lower than many other common uses</b> across industries.</li>
+        </ul>
+        <div class="foot">
+          <button class="btn primary" type="button" onclick="window.open('https://econosseur.rickecon.com/p/introducing-datacenteratlas','_blank')">Read the article &#8599;</button>
+          <button class="btn" type="button" onclick="window.open('https://www.datacenteratlas.org/','_blank')">Open the tool &#8599;</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="date">August 11, 2026</span>
+        <h3>Which Localities Can Capture the Benefits of the Data Center Infrastructure Boom?</h3>
+        <p class="verdict">Data center issues at the county and municipal level &mdash; counties and municipalities should be competing for data centers.</p>
+        <ul>
+          <li><b>Counties and municipalities should be competing</b> for construction of data centers in appropriate locations within their boundaries.</li>
+          <li>Electricity is the biggest cost and constraint on local resources, and <b>that bottleneck will exist independent of data center construction</b>.</li>
+          <li>DataCenterAtlas.org highlights the significant benefits of data centers, <b>especially in terms of property tax revenue and jobs</b>.</li>
+          <li>The most common reasons for local opposition <b>can be overcome with better information, more transparent decision processes, and a focus on aesthetics</b>.</li>
+        </ul>
+        <div class="foot">
+          <button class="btn primary" type="button" onclick="window.open('https://econosseur.rickecon.com/p/which-localities-can-capture','_blank')">Read the article &#8599;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 7 ============ -->
+<section class="slide" data-title="Two Gardner Institute studies">
+  <div class="slide-head">
+    <div>
+      <div class="eyebrow">Slide 7 &middot; Outside research</div>
+      <h2>Two Kem C. Gardner Policy Institute studies</h2>
+      <p class="sub">Both are Public Finance Briefs from August 2026. One is an excellent explainer. The other is useful, but rests on a denominator worth examining.</p>
+    </div>
+    __BRAND__
+  </div>
+  <div class="body">
+    <div class="studies">
+      <div class="card">
+        <span class="date">August 19, 2026</span>
+        <h3>Utah Tax Policies Related to Data Centers</h3>
+        <p class="verdict">A great explainer of the tradeoffs with data center tax incentives. Recommend it to colleagues.</p>
+        <ul>
+          <li>Lays out the <b>structural vs. firm-specific</b> choice cleanly: broad-based rules that treat all firms alike, versus targeted inducements for named entities.</li>
+          <li>Its advantages/disadvantages table is honest in both directions &mdash; inducements can make an infeasible project feasible, but may also <b>misallocate resources, shift burden onto other taxpayers,</b> and simply relocate activity that would have happened anyway.</li>
+          <li>Summarizes the actual toolkit: tax increment financing through CRAs and development authorities, sales tax exemptions on large data center equipment, and income tax credits.</li>
+          <li>Confirms the uniform-and-equal baseline: <b>100% of market value for business property</b>, 0.92% statewide average rate.</li>
+        </ul>
+        <div class="foot">
+          <button class="btn primary" type="button" onclick="window.open('https://d36oiwf74r1rap.cloudfront.net/wp-content/uploads/2026/08/DataCentTaxPol-FS-Aug2026.pdf','_blank')">Open PDF &#8599;</button>
+        </div>
+      </div>
+
+      <div class="card flag">
+        <span class="date">August 10, 2026</span>
+        <h3>Data Centers and Utah&rsquo;s Property Tax</h3>
+        <p class="verdict">A good discussion of what a data center adds to the tax base &mdash; but read Figure&nbsp;1 with care.</p>
+        <ul>
+          <li>Strong on mechanics: real property enters as <b>&ldquo;new growth&rdquo;</b> and raises revenue; personal property does not, so it shifts burden between taxpayers and then &ldquo;boomerangs&rdquo; as equipment depreciates.</li>
+          <li>Headline finding: a $2&nbsp;billion data center would exceed <b>20% of the property tax base in 21 of Utah&rsquo;s 29 counties</b>.</li>
+          <li><b>The caveat:</b> that base blends commercial and residential property, and residential enters at <b>55% of market value</b> &mdash; Utah&rsquo;s 45% residential exemption. In residential-heavy counties the denominator is well below true market value, which inflates the data center&rsquo;s apparent share of the base.</li>
+          <li>It is the right number for a Truth-in-Taxation revenue question; it is <b>not</b> the data center&rsquo;s share of county wealth.</li>
+        </ul>
+        <div class="foot">
+          <button class="btn primary" type="button" onclick="window.open('https://d36oiwf74r1rap.cloudfront.net/wp-content/uploads/2026/08/DataCentPropTax-FS-Aug2026.pdf','_blank')">Open PDF &#8599;</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+</div>
+
+<div class="nav">
+  <div class="dots" id="dots"></div>
+  <span class="hint">&larr; &rarr; navigate &middot; <b>O</b> overview &middot; <b>F</b> fullscreen</span>
+  <div class="navbtns">
+    <span class="counter" id="counter">1 / 6</span>
+    <button class="btn" id="prev" type="button">&larr; Prev</button>
+    <button class="btn primary" id="next" type="button">Next &rarr;</button>
+  </div>
+</div>
+
+<div id="ov"><h4>Slide overview &mdash; press O or Esc to close</h4><div class="ovgrid" id="ovgrid"></div></div>
